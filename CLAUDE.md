@@ -42,6 +42,7 @@
   - バックエンド(Spring Boot): `8080`
   - フロントエンド(Vite): `5173`
   - データベース(PostgreSQL): `5432`
+- 具体的な起動手順は `.claude/skills/run-servers/SKILL.md` を参照。
 
 ## 6. 機密データ・個人情報の取り扱い
 
