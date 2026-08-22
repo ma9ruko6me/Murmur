@@ -22,20 +22,63 @@ X（旧Twitter）のようなタイムライン形式の短文投稿SNS Webア�
 
 選定理由の詳細は [docs/basic-design.md 1章](docs/basic-design.md#1-技術スタック) を参照。
 
-## ディレクトリ構成（予定）
+## ディレクトリ構成
 
 ```
 .
 ├── backend/    # Spring Boot（REST API）
 ├── frontend/   # React + Vite（画面）
-└── docs/       # 要件定義書・基本設計書
+├── docs/       # 要件定義書・基本設計書
+└── prototype/  # 画面確認用のHTML/CSS/JSプロトタイプ
 ```
 
-`backend/`・`frontend/`は今後の実装フェーズで追加する。バックエンド・フロントエンドそれぞれの内部構成（案）は [docs/basic-design.md 5章](docs/basic-design.md#5-ディレクトリ構成案) を参照。
+バックエンド・フロントエンドそれぞれの内部構成（案）は [docs/basic-design.md 5章](docs/basic-design.md#5-ディレクトリ構成案) を参照。
+
+## セットアップ
+
+### 前提
+
+- Java 25
+- Node.js（npm）
+- Docker（PostgreSQLをコンテナで起動するため）
+
+### 1. データベースの起動
+
+```bash
+cd backend
+docker compose up -d
+```
+
+`backend/compose.yaml` により、PostgreSQL 17 がポート `5432` で起動する（DB名・ユーザー名・パスワードはいずれも `murmur`、ローカル開発用のダミー値）。
+
+### 2. バックエンドの起動（ポート8080）
+
+```bash
+cd backend
+./gradlew bootRun
+```
+
+起動後、以下で疎通確認・API仕様確認ができる。
+
+- ヘルスチェック: `http://localhost:8080/actuator/health`
+- Swagger UI: `http://localhost:8080/swagger-ui.html`
+
+### 3. フロントエンドの起動（ポート5173）
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+`http://localhost:5173/` にアクセスするとプレースホルダー画面が表示される。
+
+> [!IMPORTANT]
+> フロントエンドは `http://localhost:8080`（既定ポート）のバックエンドにAPIリクエストする構成のため、両方とも既定ポート（バックエンド`8080`／フロントエンド`5173`）で起動すること。ポート競合時に別ポートへフォールバックしたまま起動すると、通信が成立せず正しく動作しない。詳細は `.claude/skills/run-servers/SKILL.md` を参照。
 
 ## 現在の状況
 
-要件定義・基本設計フェーズ。実装（`backend/`・`frontend/`の作成）は未着手。セットアップ手順・API一覧は実装着手後に本READMEへ追記する。
+環境構築フェーズ。`backend/`・`frontend/`のスキャフォールディングまで完了。サインアップ/ログイン等の機能実装はこれから着手する。
 
 ## 開発ルール
 
