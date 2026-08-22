@@ -52,7 +52,7 @@ public class RefreshTokenService {
                 .findByTokenHash(hash(rawToken))
                 .filter(t -> t.getRevokedAt() == null)
                 .filter(t -> t.getExpiresAt().isAfter(LocalDateTime.now()))
-                .orElseThrow(() -> new InvalidRefreshTokenException("invalid or expired refresh token"));
+                .orElseThrow(() -> new InvalidRefreshTokenException("ログインの有効期限が切れました。再度ログインしてください"));
 
         refreshTokenMapper.revokeById(existing.getId());
         String newRawToken = issue(existing.getUserId());

@@ -1,3 +1,5 @@
+import axios from 'axios'
+import type { AxiosRequestConfig } from 'axios'
 import { apiClient } from './client'
 import type { AuthUser, LoginResponse } from '../types/auth'
 
@@ -13,22 +15,49 @@ export interface LoginPayload {
   password: string
 }
 
+export interface RefreshResponse {
+  token: string
+  tokenType: string
+  expiresInSeconds: number
+}
+
+function extractErrorMessage(error: unknown, fallback: string): string {
+  if (axios.isAxiosError(error)) {
+    const message = (error.response?.data as { message?: unknown } | undefined)?.message
+    if (typeof message === 'string') {
+      return message
+    }
+  }
+  return fallback
+}
+
 export async function signup(payload: SignupPayload): Promise<void> {
-  await apiClient.post('/auth/signup', payload)
+  try {
+    await apiClient.post('/auth/signup', payload)
+  } catch (error) {
+    throw new Error(extractErrorMessage(error, 'サインアップに失敗しました'), { cause: error })
+  }
 }
 
 export async function login(payload: LoginPayload): Promise<LoginResponse> {
-  const response = await apiClient.post<LoginResponse>('/auth/login', payload)
+  try {
+    const response = await apiClient.post<LoginResponse>('/auth/login', payload)
+    return response.data
+  } catch (error) {
+    throw new Error(extractErrorMessage(error, 'ログインに失敗しました'), { cause: error })
+  }
+}
+
+export async function logout(): Promise<void> {
+  await apiClient.post('/auth/logout')
+}
+
+export async function fetchMe(): Promise<AuthUser> {
+  const response = await apiClient.get<AuthUser>('/users/me')
   return response.data
 }
 
-export async function logout(token: string): Promise<void> {
-  await apiClient.post('/auth/logout', {}, { headers: { Authorization: `Bearer ${token}` } })
-}
-
-export async function fetchMe(token: string): Promise<AuthUser> {
-  const response = await apiClient.get<AuthUser>('/users/me', {
-    headers: { Authorization: `Bearer ${token}` },
-  })
+export async function refresh(config?: AxiosRequestConfig): Promise<RefreshResponse> {
+  const response = await apiClient.post<RefreshResponse>('/auth/refresh', undefined, config)
   return response.data
 }
