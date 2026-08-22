@@ -1,0 +1,11 @@
+name: murmur
+
+services:
+  postgres:
+    image: 'postgres:17'
+    environment:
+      - 'POSTGRES_DB=murmur'
+      - 'POSTGRES_PASSWORD=murmur'
+      - 'POSTGRES_USER=murmur'
+    ports:
+      - '5432:5432'

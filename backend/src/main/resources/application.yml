@@ -1,0 +1,33 @@
+spring:
+  application:
+    name: murmur
+  profiles:
+    active: dev
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+  datasource:
+    url: jdbc:postgresql://localhost:5432/murmur
+    username: murmur
+    password: murmur
+  jpa:
+    hibernate:
+      ddl-auto: none
+  flyway:
+    locations: classpath:db/migration
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: none
