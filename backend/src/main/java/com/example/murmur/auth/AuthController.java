@@ -54,10 +54,10 @@ public class AuthController {
     @PostMapping("/signup")
     public ResponseEntity<SignupResponse> signup(@Valid @RequestBody SignupRequest request) {
         if (userMapper.findByUsername(request.username()).isPresent()) {
-            throw new DuplicateUserException("username is already taken");
+            throw new DuplicateUserException("このユーザー名は既に使われています");
         }
         if (userMapper.findByEmail(request.email()).isPresent()) {
-            throw new DuplicateUserException("email is already registered");
+            throw new DuplicateUserException("このメールアドレスは既に登録されています");
         }
 
         User user = new User();
@@ -76,7 +76,7 @@ public class AuthController {
         User user = userMapper
                 .findByEmail(request.email())
                 .filter(u -> passwordEncoder.matches(request.password(), u.getPasswordHash()))
-                .orElseThrow(() -> new InvalidCredentialsException("invalid email or password"));
+                .orElseThrow(() -> new InvalidCredentialsException("メールアドレスまたはパスワードが正しくありません"));
 
         String token = jwtService.issueToken(user.getId(), user.getUsername());
         String refreshToken = refreshTokenService.issue(user.getId());
@@ -91,7 +91,7 @@ public class AuthController {
     public ResponseEntity<RefreshResponse> refresh(
             @CookieValue(name = REFRESH_TOKEN_COOKIE_NAME, required = false) String refreshTokenCookie) {
         if (refreshTokenCookie == null) {
-            throw new InvalidRefreshTokenException("invalid or expired refresh token");
+            throw new InvalidRefreshTokenException("ログインの有効期限が切れました。再度ログインしてください");
         }
 
         RefreshTokenService.RotateResult rotated = refreshTokenService.rotate(refreshTokenCookie);

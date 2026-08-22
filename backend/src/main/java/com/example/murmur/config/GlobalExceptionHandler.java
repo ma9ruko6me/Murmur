@@ -15,11 +15,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidation(MethodArgumentNotValidException ex) {
-        String message = ex.getBindingResult().getFieldErrors().stream()
-                .findFirst()
-                .map(error -> error.getField() + ": " + error.getDefaultMessage())
-                .orElse("validation failed");
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", message));
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("message", "入力内容を確認してください"));
     }
 
     @ExceptionHandler(DuplicateUserException.class)
