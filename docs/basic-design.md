@@ -31,7 +31,7 @@
 | フレームワーク | Spring Boot 4.1.x | Java/Springのデファクトスタンダード。DI・自動設定により最小構成でREST APIを構築できる |
 | ビルドツール | Gradle（Groovy DSL） | 指定 |
 | Web | Spring Web（REST API, JSON） | フロントエンド（React）とはREST + JSONで疎結合に連携する |
-| 認証 | Spring Security + JWT（アクセストークンのみ） | サインアップ/ログインを備えた複数ユーザー運用のため、トークンベースの認証を採用。ステートレス（`SessionCreationPolicy.STATELESS`）に構成し、リフレッシュトークンは当面実装しない（詳細は4.1・6章参照） |
+| 認証 | Spring Security + JWT（アクセストークン）+ リフレッシュトークン | サインアップ/ログインを備えた複数ユーザー運用のため、トークンベースの認証を採用。ステートレス（`SessionCreationPolicy.STATELESS`）に構成しつつ、失効可能な長命リフレッシュトークン（DB管理、httpOnly Cookie配布）で短命なアクセストークンを再発行する（詳細は4.2章参照） |
 | ORM／永続化 | MyBatis（XMLマッパー） | SQLを明示的に書いて実行内容を把握しやすく、学習目的でSQLへの理解を深めやすいため採用。JPA/Hibernateのような自動SQL生成は行わない |
 | マイグレーション | Flyway | スキーマ変更をバージョン管理する |
 | バリデーション | spring-boot-starter-validation | 投稿本文の文字数上限・画像枚数上限など入力チェックを宣言的に実装できる |
@@ -225,8 +225,9 @@ erDiagram
 | メソッド | パス | 概要 |
 |---------|------|------|
 | POST | `/auth/signup` | サインアップ |
-| POST | `/auth/login` | ログイン（トークン発行） |
-| POST | `/auth/logout` | ログアウト |
+| POST | `/auth/login` | ログイン（アクセストークン発行、リフレッシュトークンをhttpOnly Cookieで発行） |
+| POST | `/auth/refresh` | リフレッシュトークン（Cookie）からアクセストークンを再発行（ローテーション） |
+| POST | `/auth/logout` | ログアウト（リフレッシュトークンをサーバー側で失効） |
 | GET | `/users/{username}` | プロフィール取得 |
 | PUT | `/users/{id}` | プロフィール編集（表示名・自己紹介・アイコン画像） |
 | GET | `/users/search?q=` | ユーザー検索（ユーザー名・表示名） |
@@ -251,10 +252,13 @@ erDiagram
 
 ### 4.2 認証系エンドポイント詳細（確定）
 
-JWTはアクセストークンのみを発行する（有効期限86400秒=24時間、リフレッシュトークンなし）。フロントエンドは
-`localStorage`にトークンを保持し、`Authorization: Bearer <token>`ヘッダーで送信する。ステートレスなJWTのため、
-サーバー側でトークンを無効化する仕組み（ブラックリスト等）は持たない。`/auth/logout`はクライアント側の
-トークン破棄を前提としたno-opとして実装している。
+アクセストークン（JWT、有効期限900秒=15分）とリフレッシュトークン（ランダムなUUID文字列、有効期限14日）の
+2種類を発行する。アクセストークンはフロントエンドがメモリ上に保持し`Authorization: Bearer <token>`ヘッダーで
+送信する。リフレッシュトークンはSHA-256でハッシュ化して`refresh_tokens`テーブルに保存し、生の値は
+`httpOnly` + `SameSite=Lax`のCookie（`refresh_token`、`Path=/api/auth`）としてのみブラウザに渡す（JSからは
+読み取れない）。アクセストークンが失効したら`/auth/refresh`でCookieを使って再発行する。再発行のたびに
+リフレッシュトークンもローテーション（古いトークンは失効させ新しいトークンを発行）し、使い回しを防ぐ。
+`/auth/logout`はCookieのリフレッシュトークンをDB上で失効させ、Cookie自体も削除する。
 
 **POST /auth/signup**
 
@@ -266,12 +270,21 @@ JWTはアクセストークンのみを発行する（有効期限86400秒=24時
 
 - Request: `{ "email": string, "password": string }`
 - Response 200: `{ "token": string, "tokenType": "Bearer", "expiresInSeconds": number, "user": { "id": number, "username": string, "displayName": string, "email": string } }`
+- レスポンスヘッダー: `Set-Cookie: refresh_token=...; HttpOnly; SameSite=Lax; Path=/api/auth`
 - Errors: 401（認証失敗）
+
+**POST /auth/refresh**
+
+- Request: なし（`refresh_token` Cookieのみ）
+- Response 200: `{ "token": string, "tokenType": "Bearer", "expiresInSeconds": number }`
+- レスポンスヘッダー: ローテーションされた新しい`refresh_token` Cookie
+- Errors: 401（Cookieなし・期限切れ・失効済み・再利用検知）
 
 **POST /auth/logout**
 
-- Request: なし（Authorizationヘッダーのみ）
+- Request: なし（`refresh_token` Cookieがあれば失効させる）
 - Response 200: `{ "message": "logged out" }`
+- レスポンスヘッダー: `refresh_token` Cookieを削除（`Max-Age=0`）
 
 **GET /users/me**（JWT動作確認用に追加したエンドポイント）
 
