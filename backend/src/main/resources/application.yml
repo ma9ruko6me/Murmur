@@ -4,6 +4,11 @@ spring:
   profiles:
     active: dev
 
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+
 ---
 spring:
   config:
@@ -13,11 +18,12 @@ spring:
     url: jdbc:postgresql://localhost:5432/murmur
     username: murmur
     password: murmur
-  jpa:
-    hibernate:
-      ddl-auto: none
   flyway:
     locations: classpath:db/migration
+
+jwt:
+  secret: dev-only-secret-key-please-change-me-32bytes-min
+  expiration-ms: 86400000
 
 ---
 spring:
@@ -28,6 +34,7 @@ spring:
     url: ${DB_URL}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
-  jpa:
-    hibernate:
-      ddl-auto: none
+
+jwt:
+  secret: ${JWT_SECRET}
+  expiration-ms: 86400000
