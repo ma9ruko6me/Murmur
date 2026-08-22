@@ -227,12 +227,13 @@ erDiagram
 | POST | `/auth/login` | ログイン（トークン発行） |
 | POST | `/auth/logout` | ログアウト |
 | GET | `/users/{username}` | プロフィール取得 |
+| PUT | `/users/{id}` | プロフィール編集（表示名・自己紹介・アイコン画像） |
 | GET | `/users/search?q=` | ユーザー検索（ユーザー名・表示名） |
 | POST | `/users/{id}/follow` | フォローする |
 | DELETE | `/users/{id}/follow` | フォロー解除する |
 | GET | `/users/{id}/following` | フォロー中一覧 |
 | GET | `/users/{id}/followers` | フォロワー一覧 |
-| GET | `/timeline` | タイムライン取得（フォロー中ユーザー＋自分の投稿） |
+| GET | `/timeline?scope=following\|all` | タイムライン取得。`scope=following`（既定）はフォロー中ユーザー＋自分の投稿、`scope=all`は全ユーザーの投稿 |
 | GET | `/posts/{id}` | 投稿詳細取得（画像・コメント数・いいね数含む） |
 | POST | `/posts` | 投稿作成（本文＋画像最大4枚） |
 | PUT | `/posts/{id}` | 投稿編集 |
