@@ -13,6 +13,7 @@
   - [3.1 ER図（確定）](#31-er図確定)
   - [3.2 テーブル定義](#32-テーブル定義)
 - [4. API設計（案）](#4-api設計案)
+  - [4.2 認証系エンドポイント詳細（確定）](#42-認証系エンドポイント詳細確定)
 - [5. ディレクトリ構成（案）](#5-ディレクトリ構成案)
 - [6. 今後詳細化する項目](#6-今後詳細化する項目)
 
@@ -30,8 +31,8 @@
 | フレームワーク | Spring Boot 4.1.x | Java/Springのデファクトスタンダード。DI・自動設定により最小構成でREST APIを構築できる |
 | ビルドツール | Gradle（Groovy DSL） | 指定 |
 | Web | Spring Web（REST API, JSON） | フロントエンド（React）とはREST + JSONで疎結合に連携する |
-| 認証 | Spring Security + JWT（想定） | サインアップ/ログインを備えた複数ユーザー運用のため、トークンベースの認証を想定。詳細は今後確定 |
-| ORM／永続化 | Spring Data JPA + Hibernate | User/Post/Comment等のリレーショナルモデルに対し、ボイラープレートの少ないリポジトリ実装が可能 |
+| 認証 | Spring Security + JWT（アクセストークンのみ） | サインアップ/ログインを備えた複数ユーザー運用のため、トークンベースの認証を採用。ステートレス（`SessionCreationPolicy.STATELESS`）に構成し、リフレッシュトークンは当面実装しない（詳細は4.1・6章参照） |
+| ORM／永続化 | MyBatis（XMLマッパー） | SQLを明示的に書いて実行内容を把握しやすく、学習目的でSQLへの理解を深めやすいため採用。JPA/Hibernateのような自動SQL生成は行わない |
 | マイグレーション | Flyway | スキーマ変更をバージョン管理する |
 | バリデーション | spring-boot-starter-validation | 投稿本文の文字数上限・画像枚数上限など入力チェックを宣言的に実装できる |
 | API仕様書 | springdoc-openapi（Swagger UI） | フロントエンドと分離開発する際に、API仕様をブラウザから確認・試行できる |
@@ -248,6 +249,36 @@ erDiagram
 実装着手時にこの節へ追記する。API仕様書はspringdoc-openapi（Swagger UI）で自動生成する
 （TaskManagementと同様、`http://localhost:8080/swagger-ui.html`）。
 
+### 4.2 認証系エンドポイント詳細（確定）
+
+JWTはアクセストークンのみを発行する（有効期限86400秒=24時間、リフレッシュトークンなし）。フロントエンドは
+`localStorage`にトークンを保持し、`Authorization: Bearer <token>`ヘッダーで送信する。ステートレスなJWTのため、
+サーバー側でトークンを無効化する仕組み（ブラックリスト等）は持たない。`/auth/logout`はクライアント側の
+トークン破棄を前提としたno-opとして実装している。
+
+**POST /auth/signup**
+
+- Request: `{ "username": string, "displayName": string, "email": string, "password": string }`
+- Response 201: `{ "id": number, "username": string, "displayName": string, "email": string, "createdAt": string }`
+- Errors: 400（バリデーション）, 409（username/email重複）
+
+**POST /auth/login**
+
+- Request: `{ "email": string, "password": string }`
+- Response 200: `{ "token": string, "tokenType": "Bearer", "expiresInSeconds": number, "user": { "id": number, "username": string, "displayName": string, "email": string } }`
+- Errors: 401（認証失敗）
+
+**POST /auth/logout**
+
+- Request: なし（Authorizationヘッダーのみ）
+- Response 200: `{ "message": "logged out" }`
+
+**GET /users/me**（JWT動作確認用に追加したエンドポイント）
+
+- Authorizationヘッダー必須
+- Response 200: `{ "id": number, "username": string, "displayName": string, "email": string }`
+- Errors: 401（トークンなし/不正）
+
 ## 5. ディレクトリ構成（案）
 
 ### 5.1 バックエンド（`backend/`）
@@ -293,6 +324,5 @@ frontend/src/
 ## 6. 今後詳細化する項目
 
 - 画像ストレージの具体プロバイダ（AWS S3か他のクラウドオブジェクトストレージか）の選定と、アップロード方式（バックエンド経由 or 署名付きURL）の確定
-- 認証方式（JWTの発行・保存方法、リフレッシュトークンの要否）の詳細確定
-- API設計（4章）のリクエスト/レスポンス詳細の確定
+- API設計（4章）のうち、認証系以外のエンドポイント（users/posts/comments/likes等）のリクエスト/レスポンス詳細の確定
 - `docs/infrastructure.md`（ロードバランサーを含むインフラ構成、AWS/Terraform等）の作成
