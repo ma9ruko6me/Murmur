@@ -1,6 +1,6 @@
-import axios from 'axios'
 import type { AxiosRequestConfig } from 'axios'
 import { apiClient } from './client'
+import { extractErrorMessage } from './errors'
 import type { AuthUser, LoginResponse } from '../types/auth'
 
 export interface SignupPayload {
@@ -19,16 +19,6 @@ export interface RefreshResponse {
   token: string
   tokenType: string
   expiresInSeconds: number
-}
-
-function extractErrorMessage(error: unknown, fallback: string): string {
-  if (axios.isAxiosError(error)) {
-    const message = (error.response?.data as { message?: unknown } | undefined)?.message
-    if (typeof message === 'string') {
-      return message
-    }
-  }
-  return fallback
 }
 
 export async function signup(payload: SignupPayload): Promise<void> {

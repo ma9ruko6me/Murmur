@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.murmur.post.PostMapper">
+
+    <resultMap id="postResultMap" type="com.example.murmur.post.Post">
+        <id property="id" column="id" />
+        <result property="userId" column="user_id" />
+        <result property="content" column="content" />
+        <result property="createdAt" column="created_at" />
+        <result property="updatedAt" column="updated_at" />
+        <result property="username" column="username" />
+        <result property="displayName" column="display_name" />
+    </resultMap>
+
+    <sql id="baseSelect">
+        SELECT p.id, p.user_id, p.content, p.created_at, p.updated_at,
+               u.username, u.display_name
+        FROM posts p
+        JOIN users u ON u.id = p.user_id
+    </sql>
+
+    <select id="findById" resultMap="postResultMap">
+        <include refid="baseSelect" /> WHERE p.id = #{id}
+    </select>
+
+    <select id="findPage" resultMap="postResultMap">
+        <include refid="baseSelect" />
+        <where>
+            <if test="cursorCreatedAt != null and cursorId != null">
+                (p.created_at, p.id) &lt; (#{cursorCreatedAt}, #{cursorId})
+            </if>
+        </where>
+        ORDER BY p.created_at DESC, p.id DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="countNewerThan" resultType="long">
+        SELECT count(*) FROM posts WHERE id > #{afterId}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO posts (user_id, content) VALUES (#{userId}, #{content})
+    </insert>
+
+    <update id="update">
+        UPDATE posts SET content = #{content}, updated_at = now()
+        WHERE id = #{id}
+    </update>
+
+    <delete id="delete">
+        DELETE FROM posts WHERE id = #{id} AND user_id = #{userId}
+    </delete>
+
+</mapper>
