@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { LoginPage } from './components/LoginPage'
 import { SignupPage } from './components/SignupPage'
-import { WelcomePage } from './components/WelcomePage'
+import { Timeline } from './components/Timeline'
 import { useAuth } from './hooks/useAuth'
 
 function App() {
@@ -17,11 +17,7 @@ function App() {
   }
 
   if (status === 'authenticated' && user) {
-    return (
-      <div className="flex min-h-svh items-center justify-center bg-bg text-text">
-        <WelcomePage user={user} onLogout={signOut} />
-      </div>
-    )
+    return <Timeline currentUser={user} onLogout={signOut} />
   }
 
   return (
