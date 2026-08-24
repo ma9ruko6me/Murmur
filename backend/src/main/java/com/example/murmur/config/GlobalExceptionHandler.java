@@ -5,6 +5,7 @@ import com.example.murmur.auth.exception.InvalidCredentialsException;
 import com.example.murmur.auth.exception.InvalidRefreshTokenException;
 import com.example.murmur.post.exception.PostForbiddenException;
 import com.example.murmur.post.exception.PostNotFoundException;
+import com.example.murmur.user.exception.UserNotFoundException;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -44,5 +45,10 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(PostForbiddenException.class)
     public ResponseEntity<Map<String, String>> handlePostForbidden(PostForbiddenException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", ex.getMessage()));
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleUserNotFound(UserNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", ex.getMessage()));
     }
 }
