@@ -3,6 +3,8 @@ package com.example.murmur.config;
 import com.example.murmur.auth.exception.DuplicateUserException;
 import com.example.murmur.auth.exception.InvalidCredentialsException;
 import com.example.murmur.auth.exception.InvalidRefreshTokenException;
+import com.example.murmur.comment.exception.CommentForbiddenException;
+import com.example.murmur.comment.exception.CommentNotFoundException;
 import com.example.murmur.post.exception.PostForbiddenException;
 import com.example.murmur.post.exception.PostNotFoundException;
 import com.example.murmur.user.exception.UserNotFoundException;
@@ -50,5 +52,15 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<Map<String, String>> handleUserNotFound(UserNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", ex.getMessage()));
+    }
+
+    @ExceptionHandler(CommentNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleCommentNotFound(CommentNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", ex.getMessage()));
+    }
+
+    @ExceptionHandler(CommentForbiddenException.class)
+    public ResponseEntity<Map<String, String>> handleCommentForbidden(CommentForbiddenException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", ex.getMessage()));
     }
 }

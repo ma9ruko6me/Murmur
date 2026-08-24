@@ -8,6 +8,7 @@ export interface Post {
   updatedAt: string
   likeCount: number
   likedByMe: boolean
+  commentCount: number
 }
 
 export interface PostPage {

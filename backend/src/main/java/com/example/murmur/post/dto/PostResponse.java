@@ -12,7 +12,8 @@ public record PostResponse(
         LocalDateTime createdAt,
         LocalDateTime updatedAt,
         long likeCount,
-        boolean likedByMe) {
+        boolean likedByMe,
+        long commentCount) {
 
     public static PostResponse from(Post post) {
         return new PostResponse(
@@ -24,6 +25,7 @@ public record PostResponse(
                 post.getCreatedAt(),
                 post.getUpdatedAt(),
                 post.getLikeCount(),
-                post.isLikedByMe());
+                post.isLikedByMe(),
+                post.getCommentCount());
     }
 }

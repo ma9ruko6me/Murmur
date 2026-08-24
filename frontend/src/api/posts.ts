@@ -14,6 +14,11 @@ export async function fetchNewPostCount(afterId: number): Promise<number> {
   return response.data.count
 }
 
+export async function fetchPost(id: number): Promise<Post> {
+  const response = await apiClient.get<Post>(`/posts/${id}`)
+  return response.data
+}
+
 export async function createPost(content: string): Promise<Post> {
   try {
     const response = await apiClient.post<Post>('/posts', { content })

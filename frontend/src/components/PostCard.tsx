@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import type { Post } from '../types/post'
 import { Avatar } from './Avatar'
 
@@ -59,6 +60,14 @@ export function PostCard({ post, currentUserId, onEdit, onDeleteRequest, onToggl
           </svg>
           <span>{post.likeCount}</span>
         </button>
+
+        <Link
+          to={`/posts/${post.id}`}
+          className="flex items-center gap-1 rounded-full px-2 py-1 text-sm font-semibold text-text-muted hover:text-accent"
+        >
+          <span aria-hidden="true">💬</span>
+          <span>{post.commentCount}</span>
+        </Link>
 
         {isOwnPost && (
           <>

@@ -192,6 +192,7 @@ erDiagram
 | content | VARCHAR(280) | NOT NULL | コメント本文 |
 | created_at | TIMESTAMP | NOT NULL, DEFAULT now() | 作成日時 |
 | updated_at | TIMESTAMP | NOT NULL, DEFAULT now() | 更新日時 |
+| deleted_at | TIMESTAMP | | 論理削除日時（削除済みの場合のみ設定。返信を持つコメントも物理削除せず本文のみ非表示にする） |
 
 #### likes
 
@@ -240,8 +241,10 @@ erDiagram
 | POST | `/posts` | 投稿作成（本文＋画像最大4枚） |
 | PUT | `/posts/{id}` | 投稿編集 |
 | DELETE | `/posts/{id}` | 投稿削除 |
-| GET | `/posts/{id}/comments` | コメント一覧取得（階層構造） |
+| GET | `/posts/{id}/comments` | コメント一覧取得（時系列フラット、reply_to参照付き。階層ネスト構造ではない） |
 | POST | `/posts/{id}/comments` | コメント・返信の作成（`parentCommentId`で返信先を指定） |
+| PUT | `/comments/{id}` | コメント編集 |
+| DELETE | `/comments/{id}` | コメント削除（論理削除） |
 | GET | `/comments/search?q=` | コメント検索（本文キーワード） |
 | POST | `/posts/{id}/like` | いいねする |
 | DELETE | `/posts/{id}/like` | いいね解除する |
@@ -303,7 +306,7 @@ backend/src/main/java/com/example/murmur/
 ├── auth/                    # サインアップ・ログイン
 ├── user/                    # ユーザー・フォロー・検索
 ├── post/                    # 投稿・画像・タイムライン
-├── comment/                 # コメント（階層）・検索
+├── comment/                 # コメント（時系列フラット+reply_to参照）・検索
 └── like/                    # いいね
 backend/src/main/resources/
 ├── application.yml
@@ -322,8 +325,10 @@ frontend/src/
 │   ├── Timeline.tsx
 │   ├── PostCard.tsx
 │   ├── PostFormModal.tsx          # 投稿作成・編集共通モーダル
-│   ├── PostDetail.tsx
-│   ├── CommentThread.tsx          # 階層コメント表示
+│   ├── PostDetailPage.tsx
+│   ├── CommentList.tsx            # 時系列フラット表示（reply_toで返信先を表示）
+│   ├── CommentItem.tsx
+│   ├── CommentForm.tsx
 │   ├── Profile.tsx
 │   ├── FollowList.tsx
 │   └── Search.tsx
