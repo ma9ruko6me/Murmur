@@ -9,12 +9,13 @@ import org.apache.ibatis.annotations.Param;
 @Mapper
 public interface PostMapper {
 
-    Optional<Post> findById(@Param("id") Long id);
+    Optional<Post> findById(@Param("id") Long id, @Param("currentUserId") Long currentUserId);
 
     List<Post> findPage(
             @Param("cursorCreatedAt") LocalDateTime cursorCreatedAt,
             @Param("cursorId") Long cursorId,
-            @Param("limit") int limit);
+            @Param("limit") int limit,
+            @Param("currentUserId") Long currentUserId);
 
     long countNewerThan(@Param("afterId") Long afterId);
 

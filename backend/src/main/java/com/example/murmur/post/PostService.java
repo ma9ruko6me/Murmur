@@ -18,8 +18,8 @@ public class PostService {
         this.postMapper = postMapper;
     }
 
-    public List<Post> findPage(LocalDateTime cursorCreatedAt, Long cursorId, int limit) {
-        return postMapper.findPage(cursorCreatedAt, cursorId, limit);
+    public List<Post> findPage(LocalDateTime cursorCreatedAt, Long cursorId, int limit, Long currentUserId) {
+        return postMapper.findPage(cursorCreatedAt, cursorId, limit, currentUserId);
     }
 
     public long countNewerThan(Long afterId) {
@@ -31,13 +31,13 @@ public class PostService {
         post.setUserId(userId);
         post.setContent(content);
         postMapper.insert(post);
-        return getById(post.getId());
+        return getByIdForUser(post.getId(), userId);
     }
 
     public Post update(Long id, Long userId, String content) {
         requireOwnedPost(id, userId);
         postMapper.update(id, content);
-        return getById(id);
+        return getByIdForUser(id, userId);
     }
 
     public void delete(Long id, Long userId) {
@@ -45,12 +45,12 @@ public class PostService {
         postMapper.delete(id, userId);
     }
 
-    public Post getById(Long id) {
-        return postMapper.findById(id).orElseThrow(() -> new PostNotFoundException(NOT_FOUND_MESSAGE));
+    public Post getByIdForUser(Long id, Long currentUserId) {
+        return postMapper.findById(id, currentUserId).orElseThrow(() -> new PostNotFoundException(NOT_FOUND_MESSAGE));
     }
 
     private Post requireOwnedPost(Long id, Long userId) {
-        Post existing = getById(id);
+        Post existing = getByIdForUser(id, userId);
         if (!existing.getUserId().equals(userId)) {
             throw new PostForbiddenException(FORBIDDEN_MESSAGE);
         }

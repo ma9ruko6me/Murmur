@@ -17,4 +17,6 @@ public class Post {
     private LocalDateTime updatedAt;
     private String username;
     private String displayName;
+    private long likeCount;
+    private boolean likedByMe;
 }
