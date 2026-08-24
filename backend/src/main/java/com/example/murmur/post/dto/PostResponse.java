@@ -10,7 +10,9 @@ public record PostResponse(
         String displayName,
         String content,
         LocalDateTime createdAt,
-        LocalDateTime updatedAt) {
+        LocalDateTime updatedAt,
+        long likeCount,
+        boolean likedByMe) {
 
     public static PostResponse from(Post post) {
         return new PostResponse(
@@ -20,6 +22,8 @@ public record PostResponse(
                 post.getDisplayName(),
                 post.getContent(),
                 post.getCreatedAt(),
-                post.getUpdatedAt());
+                post.getUpdatedAt(),
+                post.getLikeCount(),
+                post.isLikedByMe());
     }
 }

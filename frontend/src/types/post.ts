@@ -6,9 +6,16 @@ export interface Post {
   content: string
   createdAt: string
   updatedAt: string
+  likeCount: number
+  likedByMe: boolean
 }
 
 export interface PostPage {
   items: Post[]
   nextCursor: string | null
+}
+
+export interface LikeStatus {
+  likeCount: number
+  likedByMe: boolean
 }

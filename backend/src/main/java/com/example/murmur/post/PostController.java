@@ -40,13 +40,17 @@ public class PostController {
 
     @GetMapping
     public PostPageResponse list(
-            @RequestParam(required = false) String cursor, @RequestParam(required = false) Integer limit) {
+            @RequestParam(required = false) String cursor,
+            @RequestParam(required = false) Integer limit,
+            Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
         int pageSize = clamp(limit);
         Cursor decoded = cursor != null ? decodeCursor(cursor) : null;
         List<Post> rows = postService.findPage(
                 decoded != null ? decoded.createdAt() : null,
                 decoded != null ? decoded.id() : null,
-                pageSize + 1);
+                pageSize + 1,
+                userId);
         boolean hasMore = rows.size() > pageSize;
         List<Post> page = hasMore ? rows.subList(0, pageSize) : rows;
         String nextCursor = hasMore ? encodeCursor(page.get(page.size() - 1)) : null;

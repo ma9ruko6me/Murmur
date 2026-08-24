@@ -5,9 +5,10 @@ import { useInfinitePosts } from '../hooks/useInfinitePosts'
 import { useNewPostsAvailable } from '../hooks/useNewPostsAvailable'
 import { useIntersectionSentinel } from '../hooks/useIntersectionSentinel'
 import { createPost, deletePost, updatePost } from '../api/posts'
+import { likePost, unlikePost } from '../api/likes'
 import { logout } from '../api/auth'
 import type { AuthUser } from '../types/auth'
-import type { Post, PostPage } from '../types/post'
+import type { LikeStatus, Post, PostPage } from '../types/post'
 import { Avatar } from './Avatar'
 import { PostCard } from './PostCard'
 import { PostFormModal } from './PostFormModal'
@@ -87,6 +88,23 @@ export function Timeline({ currentUser, onLogout }: TimelineProps) {
     })
   }
 
+  function patchLikeState(postId: number, status: LikeStatus) {
+    queryClient.setQueryData<PostsQueryData>(['posts'], (old) => {
+      if (!old) {
+        return old
+      }
+      return {
+        ...old,
+        pages: old.pages.map((page) => ({
+          ...page,
+          items: page.items.map((item) =>
+            item.id === postId ? { ...item, likeCount: status.likeCount, likedByMe: status.likedByMe } : item,
+          ),
+        })),
+      }
+    })
+  }
+
   function removePostFromCache(id: number) {
     queryClient.setQueryData<PostsQueryData>(['posts'], (old) => {
       if (!old) {
@@ -123,6 +141,11 @@ export function Timeline({ currentUser, onLogout }: TimelineProps) {
     setDeleteTargetId(null)
     await deletePost(id)
     removePostFromCache(id)
+  }
+
+  async function handleToggleLike(post: Post) {
+    const status = post.likedByMe ? await unlikePost(post.id) : await likePost(post.id)
+    patchLikeState(post.id, status)
   }
 
   async function handleLogout() {
@@ -198,6 +221,7 @@ export function Timeline({ currentUser, onLogout }: TimelineProps) {
               currentUserId={currentUser.id}
               onEdit={setEditingPost}
               onDeleteRequest={setDeleteTargetId}
+              onToggleLike={handleToggleLike}
             />
           ))}
         </div>
