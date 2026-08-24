@@ -12,16 +12,19 @@
         <result property="displayName" column="display_name" />
         <result property="likeCount" column="like_count" />
         <result property="likedByMe" column="liked_by_me" />
+        <result property="commentCount" column="comment_count" />
     </resultMap>
 
     <sql id="baseSelect">
         SELECT p.id, p.user_id, p.content, p.created_at, p.updated_at,
                u.username, u.display_name,
-               COUNT(l.id) AS like_count,
-               COALESCE(BOOL_OR(l.user_id = #{currentUserId}), false) AS liked_by_me
+               COUNT(DISTINCT l.id) AS like_count,
+               COALESCE(BOOL_OR(l.user_id = #{currentUserId}), false) AS liked_by_me,
+               COUNT(DISTINCT c.id) AS comment_count
         FROM posts p
         JOIN users u ON u.id = p.user_id
         LEFT JOIN likes l ON l.post_id = p.id
+        LEFT JOIN comments c ON c.post_id = p.id AND c.deleted_at IS NULL
     </sql>
 
     <sql id="groupBy">GROUP BY p.id, u.username, u.display_name</sql>

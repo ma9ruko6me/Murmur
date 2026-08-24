@@ -62,6 +62,12 @@ public class PostController {
         return Map.of("count", postService.countNewerThan(after));
     }
 
+    @GetMapping("/{id}")
+    public PostResponse get(@PathVariable Long id, Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        return PostResponse.from(postService.getByIdForUser(id, userId));
+    }
+
     @PostMapping
     public ResponseEntity<PostResponse> create(
             @Valid @RequestBody CreatePostRequest request, Authentication authentication) {
