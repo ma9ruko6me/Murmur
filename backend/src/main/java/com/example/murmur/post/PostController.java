@@ -4,8 +4,6 @@ import com.example.murmur.post.dto.CreatePostRequest;
 import com.example.murmur.post.dto.PostPageResponse;
 import com.example.murmur.post.dto.PostResponse;
 import com.example.murmur.post.dto.UpdatePostRequest;
-import com.example.murmur.post.exception.PostForbiddenException;
-import com.example.murmur.post.exception.PostNotFoundException;
 import jakarta.validation.Valid;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -33,13 +31,11 @@ public class PostController {
 
     private static final int DEFAULT_LIMIT = 20;
     private static final int MAX_LIMIT = 50;
-    private static final String NOT_FOUND_MESSAGE = "投稿が見つかりません";
-    private static final String FORBIDDEN_MESSAGE = "この投稿を編集・削除する権限がありません";
 
-    private final PostMapper postMapper;
+    private final PostService postService;
 
-    public PostController(PostMapper postMapper) {
-        this.postMapper = postMapper;
+    public PostController(PostService postService) {
+        this.postService = postService;
     }
 
     @GetMapping
@@ -47,7 +43,7 @@ public class PostController {
             @RequestParam(required = false) String cursor, @RequestParam(required = false) Integer limit) {
         int pageSize = clamp(limit);
         Cursor decoded = cursor != null ? decodeCursor(cursor) : null;
-        List<Post> rows = postMapper.findPage(
+        List<Post> rows = postService.findPage(
                 decoded != null ? decoded.createdAt() : null,
                 decoded != null ? decoded.id() : null,
                 pageSize + 1);
@@ -59,18 +55,14 @@ public class PostController {
 
     @GetMapping("/new-count")
     public Map<String, Long> newCount(@RequestParam Long after) {
-        return Map.of("count", postMapper.countNewerThan(after));
+        return Map.of("count", postService.countNewerThan(after));
     }
 
     @PostMapping
     public ResponseEntity<PostResponse> create(
             @Valid @RequestBody CreatePostRequest request, Authentication authentication) {
         Long userId = (Long) authentication.getPrincipal();
-        Post post = new Post();
-        post.setUserId(userId);
-        post.setContent(request.content());
-        postMapper.insert(post);
-        Post saved = postMapper.findById(post.getId()).orElseThrow();
+        Post saved = postService.create(userId, request.content());
         return ResponseEntity.status(HttpStatus.CREATED).body(PostResponse.from(saved));
     }
 
@@ -78,25 +70,15 @@ public class PostController {
     public PostResponse update(
             @PathVariable Long id, @Valid @RequestBody UpdatePostRequest request, Authentication authentication) {
         Long userId = (Long) authentication.getPrincipal();
-        Post existing = requireOwnedPost(id, userId);
-        postMapper.update(existing.getId(), request.content());
-        return PostResponse.from(postMapper.findById(id).orElseThrow());
+        Post updated = postService.update(id, userId, request.content());
+        return PostResponse.from(updated);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id, Authentication authentication) {
         Long userId = (Long) authentication.getPrincipal();
-        requireOwnedPost(id, userId);
-        postMapper.delete(id, userId);
+        postService.delete(id, userId);
         return ResponseEntity.noContent().build();
-    }
-
-    private Post requireOwnedPost(Long id, Long userId) {
-        Post existing = postMapper.findById(id).orElseThrow(() -> new PostNotFoundException(NOT_FOUND_MESSAGE));
-        if (!existing.getUserId().equals(userId)) {
-            throw new PostForbiddenException(FORBIDDEN_MESSAGE);
-        }
-        return existing;
     }
 
     private int clamp(Integer requested) {
