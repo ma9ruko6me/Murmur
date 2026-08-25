@@ -37,4 +37,13 @@
         VALUES (#{username}, #{displayName}, #{email}, #{passwordHash})
     </insert>
 
+    <update id="updateProfile">
+        UPDATE users SET display_name = #{displayName}, bio = #{bio}, updated_at = now()
+        WHERE id = #{id}
+    </update>
+
+    <select id="countPostsByUserId" resultType="long">
+        SELECT count(*) FROM posts WHERE user_id = #{userId}
+    </select>
+
 </mapper>

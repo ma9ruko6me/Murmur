@@ -8,6 +8,7 @@ import com.example.murmur.comment.exception.CommentNotFoundException;
 import com.example.murmur.post.exception.PostForbiddenException;
 import com.example.murmur.post.exception.PostNotFoundException;
 import com.example.murmur.user.exception.UserNotFoundException;
+import com.example.murmur.user.exception.UserProfileNotFoundException;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -52,6 +53,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<Map<String, String>> handleUserNotFound(UserNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", ex.getMessage()));
+    }
+
+    @ExceptionHandler(UserProfileNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleUserProfileNotFound(UserProfileNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", ex.getMessage()));
     }
 
     @ExceptionHandler(CommentNotFoundException.class)
