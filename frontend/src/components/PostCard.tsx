@@ -27,13 +27,13 @@ export function PostCard({ post, currentUserId, onEdit, onDeleteRequest, onToggl
   return (
     <article className="rounded-xl border border-border bg-surface p-4">
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
+        <Link to={`/users/${post.username}`} className="flex items-center gap-2">
           <Avatar userId={post.userId} displayName={post.displayName} size="sm" />
           <span className="flex flex-col leading-tight">
-            <span className="font-bold text-text">{post.displayName}</span>
+            <span className="font-bold text-text hover:underline">{post.displayName}</span>
             <span className="text-sm text-text-muted">@{post.username}</span>
           </span>
-        </div>
+        </Link>
         <span className="whitespace-nowrap text-sm text-text-muted">{formatDate(post.createdAt)}</span>
       </div>
 

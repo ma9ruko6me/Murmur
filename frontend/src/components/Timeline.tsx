@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { useInfinitePosts } from '../hooks/useInfinitePosts'
 import { useNewPostsAvailable } from '../hooks/useNewPostsAvailable'
@@ -104,10 +105,12 @@ export function Timeline({ currentUser, onLogout }: TimelineProps) {
       <nav className="sticky top-0 z-10 flex flex-wrap items-center gap-4 border-b border-border bg-surface px-6 py-3">
         <span className="text-xl font-bold text-accent">Murmur</span>
         <div className="flex flex-1 items-center justify-end gap-4">
-          <div className="flex items-center gap-2">
+          <Link to={`/users/${currentUser.username}`} className="flex items-center gap-2">
             <Avatar userId={currentUser.id} displayName={currentUser.displayName} size="sm" />
-            <span className="hidden font-semibold text-text sm:inline">{currentUser.displayName}</span>
-          </div>
+            <span className="hidden font-semibold text-text hover:underline sm:inline">
+              {currentUser.displayName}
+            </span>
+          </Link>
           <button
             type="button"
             onClick={handleLogout}

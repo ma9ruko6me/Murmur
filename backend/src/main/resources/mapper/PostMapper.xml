@@ -39,6 +39,9 @@
             <if test="cursorCreatedAt != null and cursorId != null">
                 (p.created_at, p.id) &lt; (#{cursorCreatedAt}, #{cursorId})
             </if>
+            <if test="authorId != null">
+                AND p.user_id = #{authorId}
+            </if>
         </where>
         <include refid="groupBy" />
         ORDER BY p.created_at DESC, p.id DESC

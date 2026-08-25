@@ -2,9 +2,13 @@ import { apiClient } from './client'
 import { extractErrorMessage } from './errors'
 import type { Post, PostPage } from '../types/post'
 
-export async function fetchPosts(params: { cursor?: string | null; limit?: number }): Promise<PostPage> {
+export async function fetchPosts(params: {
+  cursor?: string | null
+  limit?: number
+  userId?: number
+}): Promise<PostPage> {
   const response = await apiClient.get<PostPage>('/posts', {
-    params: { cursor: params.cursor ?? undefined, limit: params.limit },
+    params: { cursor: params.cursor ?? undefined, limit: params.limit, userId: params.userId },
   })
   return response.data
 }

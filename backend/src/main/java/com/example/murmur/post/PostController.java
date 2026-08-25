@@ -42,14 +42,16 @@ public class PostController {
     public PostPageResponse list(
             @RequestParam(required = false) String cursor,
             @RequestParam(required = false) Integer limit,
+            @RequestParam(required = false) Long userId,
             Authentication authentication) {
-        Long userId = (Long) authentication.getPrincipal();
+        Long currentUserId = (Long) authentication.getPrincipal();
         int pageSize = clamp(limit);
         Cursor decoded = cursor != null ? decodeCursor(cursor) : null;
         List<Post> rows = postService.findPage(
                 decoded != null ? decoded.createdAt() : null,
                 decoded != null ? decoded.id() : null,
                 pageSize + 1,
+                currentUserId,
                 userId);
         boolean hasMore = rows.size() > pageSize;
         List<Post> page = hasMore ? rows.subList(0, pageSize) : rows;

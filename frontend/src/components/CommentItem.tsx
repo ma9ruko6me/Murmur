@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import type { Comment } from '../types/comment'
 import { Avatar } from './Avatar'
 
@@ -72,13 +73,13 @@ export function CommentItem({ comment, currentUserId, onReply, onSaveEdit, onDel
       )}
 
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
+        <Link to={`/users/${comment.username}`} className="flex items-center gap-2">
           <Avatar userId={comment.userId} displayName={comment.displayName} size="sm" />
           <span className="flex flex-col leading-tight">
-            <span className="font-bold text-text">{comment.displayName}</span>
+            <span className="font-bold text-text hover:underline">{comment.displayName}</span>
             <span className="text-sm text-text-muted">@{comment.username}</span>
           </span>
-        </div>
+        </Link>
         <span className="whitespace-nowrap text-sm text-text-muted">{formatDate(comment.createdAt)}</span>
       </div>
 

@@ -3,6 +3,7 @@ import { LoginPage } from './components/LoginPage'
 import { SignupPage } from './components/SignupPage'
 import { Timeline } from './components/Timeline'
 import { PostDetailPage } from './components/PostDetailPage'
+import { ProfilePage } from './components/ProfilePage'
 import { RequireAuth } from './components/RequireAuth'
 import { useAuth } from './hooks/useAuth'
 
@@ -59,6 +60,14 @@ function App() {
         element={
           <RequireAuth authenticated={authenticated}>
             {user && <PostDetailPage currentUser={user} />}
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/users/:username"
+        element={
+          <RequireAuth authenticated={authenticated}>
+            {user && <ProfilePage currentUser={user} />}
           </RequireAuth>
         }
       />

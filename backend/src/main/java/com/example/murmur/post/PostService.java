@@ -18,8 +18,9 @@ public class PostService {
         this.postMapper = postMapper;
     }
 
-    public List<Post> findPage(LocalDateTime cursorCreatedAt, Long cursorId, int limit, Long currentUserId) {
-        return postMapper.findPage(cursorCreatedAt, cursorId, limit, currentUserId);
+    public List<Post> findPage(
+            LocalDateTime cursorCreatedAt, Long cursorId, int limit, Long currentUserId, Long authorId) {
+        return postMapper.findPage(cursorCreatedAt, cursorId, limit, currentUserId, authorId);
     }
 
     public long countNewerThan(Long afterId) {

@@ -15,7 +15,8 @@ public interface PostMapper {
             @Param("cursorCreatedAt") LocalDateTime cursorCreatedAt,
             @Param("cursorId") Long cursorId,
             @Param("limit") int limit,
-            @Param("currentUserId") Long currentUserId);
+            @Param("currentUserId") Long currentUserId,
+            @Param("authorId") Long authorId);
 
     long countNewerThan(@Param("afterId") Long afterId);
 

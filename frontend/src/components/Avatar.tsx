@@ -11,12 +11,13 @@ function initials(displayName: string): string {
 interface AvatarProps {
   userId: number
   displayName: string
-  size?: 'sm' | 'md'
+  size?: 'sm' | 'md' | 'lg'
 }
 
 const SIZE_CLASSES: Record<NonNullable<AvatarProps['size']>, string> = {
   sm: 'h-8 w-8 text-sm',
   md: 'h-10 w-10 text-base',
+  lg: 'h-20 w-20 text-3xl',
 }
 
 export function Avatar({ userId, displayName, size = 'md' }: AvatarProps) {
