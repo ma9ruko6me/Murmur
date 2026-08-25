@@ -43,6 +43,7 @@ public class PostController {
             @RequestParam(required = false) String cursor,
             @RequestParam(required = false) Integer limit,
             @RequestParam(required = false) Long userId,
+            @RequestParam(required = false, defaultValue = "following") String scope,
             Authentication authentication) {
         Long currentUserId = (Long) authentication.getPrincipal();
         int pageSize = clamp(limit);
@@ -52,7 +53,8 @@ public class PostController {
                 decoded != null ? decoded.id() : null,
                 pageSize + 1,
                 currentUserId,
-                userId);
+                userId,
+                scope);
         boolean hasMore = rows.size() > pageSize;
         List<Post> page = hasMore ? rows.subList(0, pageSize) : rows;
         String nextCursor = hasMore ? encodeCursor(page.get(page.size() - 1)) : null;
@@ -60,8 +62,12 @@ public class PostController {
     }
 
     @GetMapping("/new-count")
-    public Map<String, Long> newCount(@RequestParam Long after) {
-        return Map.of("count", postService.countNewerThan(after));
+    public Map<String, Long> newCount(
+            @RequestParam Long after,
+            @RequestParam(required = false, defaultValue = "following") String scope,
+            Authentication authentication) {
+        Long currentUserId = (Long) authentication.getPrincipal();
+        return Map.of("count", postService.countNewerThan(after, currentUserId, scope));
     }
 
     @GetMapping("/{id}")

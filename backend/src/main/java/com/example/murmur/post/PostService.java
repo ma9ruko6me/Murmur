@@ -19,12 +19,17 @@ public class PostService {
     }
 
     public List<Post> findPage(
-            LocalDateTime cursorCreatedAt, Long cursorId, int limit, Long currentUserId, Long authorId) {
-        return postMapper.findPage(cursorCreatedAt, cursorId, limit, currentUserId, authorId);
+            LocalDateTime cursorCreatedAt,
+            Long cursorId,
+            int limit,
+            Long currentUserId,
+            Long authorId,
+            String scope) {
+        return postMapper.findPage(cursorCreatedAt, cursorId, limit, currentUserId, authorId, scope);
     }
 
-    public long countNewerThan(Long afterId) {
-        return postMapper.countNewerThan(afterId);
+    public long countNewerThan(Long afterId, Long currentUserId, String scope) {
+        return postMapper.countNewerThan(afterId, currentUserId, scope);
     }
 
     public Post create(Long userId, String content) {

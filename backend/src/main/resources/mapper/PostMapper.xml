@@ -42,6 +42,11 @@
             <if test="authorId != null">
                 AND p.user_id = #{authorId}
             </if>
+            <if test="authorId == null and scope == 'following' and currentUserId != null">
+                AND (p.user_id = #{currentUserId} OR EXISTS (
+                    SELECT 1 FROM follows f WHERE f.follower_id = #{currentUserId} AND f.followee_id = p.user_id
+                ))
+            </if>
         </where>
         <include refid="groupBy" />
         ORDER BY p.created_at DESC, p.id DESC
@@ -49,7 +54,15 @@
     </select>
 
     <select id="countNewerThan" resultType="long">
-        SELECT count(*) FROM posts WHERE id > #{afterId}
+        SELECT count(*) FROM posts p
+        <where>
+            p.id > #{afterId}
+            <if test="scope == 'following' and currentUserId != null">
+                AND (p.user_id = #{currentUserId} OR EXISTS (
+                    SELECT 1 FROM follows f WHERE f.follower_id = #{currentUserId} AND f.followee_id = p.user_id
+                ))
+            </if>
+        </where>
     </select>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">

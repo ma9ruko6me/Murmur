@@ -16,9 +16,11 @@ public interface PostMapper {
             @Param("cursorId") Long cursorId,
             @Param("limit") int limit,
             @Param("currentUserId") Long currentUserId,
-            @Param("authorId") Long authorId);
+            @Param("authorId") Long authorId,
+            @Param("scope") String scope);
 
-    long countNewerThan(@Param("afterId") Long afterId);
+    long countNewerThan(
+            @Param("afterId") Long afterId, @Param("currentUserId") Long currentUserId, @Param("scope") String scope);
 
     void insert(Post post);
 
