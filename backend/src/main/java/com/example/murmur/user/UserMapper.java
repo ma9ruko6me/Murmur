@@ -1,5 +1,7 @@
 package com.example.murmur.user;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -18,4 +20,11 @@ public interface UserMapper {
     void updateProfile(@Param("id") Long id, @Param("displayName") String displayName, @Param("bio") String bio);
 
     long countPostsByUserId(Long userId);
+
+    List<UserSearchResult> search(
+            @Param("q") String q,
+            @Param("currentUserId") Long currentUserId,
+            @Param("cursorCreatedAt") LocalDateTime cursorCreatedAt,
+            @Param("cursorId") Long cursorId,
+            @Param("limit") int limit);
 }

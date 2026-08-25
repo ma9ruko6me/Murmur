@@ -46,4 +46,30 @@
         SELECT count(*) FROM posts WHERE user_id = #{userId}
     </select>
 
+    <resultMap id="userSearchResultMap" type="com.example.murmur.user.UserSearchResult">
+        <id property="id" column="id" />
+        <result property="username" column="username" />
+        <result property="displayName" column="display_name" />
+        <result property="bio" column="bio" />
+        <result property="avatarUrl" column="avatar_url" />
+        <result property="createdAt" column="created_at" />
+        <result property="followedByMe" column="followed_by_me" />
+    </resultMap>
+
+    <select id="search" resultMap="userSearchResultMap">
+        SELECT u.id, u.username, u.display_name, u.bio, u.avatar_url, u.created_at,
+               EXISTS (
+                   SELECT 1 FROM follows f WHERE f.follower_id = #{currentUserId} AND f.followee_id = u.id
+               ) AS followed_by_me
+        FROM users u
+        <where>
+            (u.username ILIKE CONCAT('%', #{q}, '%') OR u.display_name ILIKE CONCAT('%', #{q}, '%'))
+            <if test="cursorCreatedAt != null and cursorId != null">
+                AND (u.created_at, u.id) &lt; (#{cursorCreatedAt}, #{cursorId})
+            </if>
+        </where>
+        ORDER BY u.created_at DESC, u.id DESC
+        LIMIT #{limit}
+    </select>
+
 </mapper>

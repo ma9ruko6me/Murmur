@@ -3,6 +3,8 @@ package com.example.murmur.user;
 import com.example.murmur.user.dto.UserProfileResponse;
 import com.example.murmur.user.exception.UserNotFoundException;
 import com.example.murmur.user.exception.UserProfileNotFoundException;
+import java.time.LocalDateTime;
+import java.util.List;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -41,5 +43,13 @@ public class UserService {
         long followerCount = followMapper.countFollowers(userId);
         long followingCount = followMapper.countFollowing(userId);
         return UserProfileResponse.from(updated, postCount, true, followerCount, followingCount, false);
+    }
+
+    public List<UserSearchResult> search(
+            String q, Long currentUserId, LocalDateTime cursorCreatedAt, Long cursorId, int limit) {
+        if (q == null || q.isBlank()) {
+            return List.of();
+        }
+        return userMapper.search(q.trim(), currentUserId, cursorCreatedAt, cursorId, limit);
     }
 }

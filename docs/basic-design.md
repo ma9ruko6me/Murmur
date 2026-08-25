@@ -232,6 +232,7 @@ erDiagram
 | GET | `/users/{username}` | プロフィール取得 |
 | PUT | `/users/{id}` | プロフィール編集（表示名・自己紹介・アイコン画像） |
 | GET | `/users/search?q=` | ユーザー検索（ユーザー名・表示名） |
+| GET | `/posts/search?q=` | 投稿検索（本文キーワード） |
 | POST | `/users/{id}/follow` | フォローする |
 | DELETE | `/users/{id}/follow` | フォロー解除する |
 | GET | `/users/{id}/following` | フォロー中一覧 |

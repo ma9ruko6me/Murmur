@@ -111,6 +111,19 @@ export function Timeline({ currentUser, onLogout }: TimelineProps) {
       <nav className="sticky top-0 z-10 flex flex-wrap items-center gap-4 border-b border-border bg-surface px-6 py-3">
         <span className="text-xl font-bold text-accent">Murmur</span>
         <div className="flex flex-1 items-center justify-end gap-4">
+          <Link to="/search" aria-label="検索" className="text-text-muted hover:text-text">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              className="h-6 w-6"
+            >
+              <circle cx="11" cy="11" r="7" />
+              <path d="m21 21-4.3-4.3" />
+            </svg>
+          </Link>
           <Link to={`/users/${currentUser.username}`} className="flex items-center gap-2">
             <Avatar userId={currentUser.id} displayName={currentUser.displayName} size="sm" />
             <span className="hidden font-semibold text-text hover:underline sm:inline">
