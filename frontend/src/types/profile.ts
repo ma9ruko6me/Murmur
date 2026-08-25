@@ -6,4 +6,7 @@ export interface UserProfile {
   avatarUrl: string | null
   postCount: number
   own: boolean
+  followerCount: number
+  followingCount: number
+  followedByMe: boolean
 }

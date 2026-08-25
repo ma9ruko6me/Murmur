@@ -4,6 +4,7 @@ import { SignupPage } from './components/SignupPage'
 import { Timeline } from './components/Timeline'
 import { PostDetailPage } from './components/PostDetailPage'
 import { ProfilePage } from './components/ProfilePage'
+import { FollowListPage } from './components/FollowListPage'
 import { RequireAuth } from './components/RequireAuth'
 import { useAuth } from './hooks/useAuth'
 
@@ -68,6 +69,22 @@ function App() {
         element={
           <RequireAuth authenticated={authenticated}>
             {user && <ProfilePage currentUser={user} />}
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/users/:username/followers"
+        element={
+          <RequireAuth authenticated={authenticated}>
+            {user && <FollowListPage currentUser={user} listType="followers" />}
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/users/:username/following"
+        element={
+          <RequireAuth authenticated={authenticated}>
+            {user && <FollowListPage currentUser={user} listType="following" />}
           </RequireAuth>
         }
       />

@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { useUserProfile } from '../hooks/useUserProfile'
 import { useInfinitePosts } from '../hooks/useInfinitePosts'
@@ -7,6 +7,7 @@ import { useIntersectionSentinel } from '../hooks/useIntersectionSentinel'
 import { updateMyProfile } from '../api/users'
 import { updatePost, deletePost } from '../api/posts'
 import { likePost, unlikePost } from '../api/likes'
+import { followUser, unfollowUser } from '../api/follows'
 import {
   patchPostInInfiniteCache,
   patchPostsByAuthorInInfiniteCache,
@@ -15,11 +16,13 @@ import {
 } from '../lib/postsCache'
 import type { AuthUser } from '../types/auth'
 import type { Post } from '../types/post'
+import type { UserProfile } from '../types/profile'
 import { Avatar } from './Avatar'
 import { PostCard } from './PostCard'
 import { PostFormModal } from './PostFormModal'
 import { ProfileEditModal } from './ProfileEditModal'
 import { ConfirmDialog } from './ConfirmDialog'
+import { FollowButton } from './FollowButton'
 
 interface ProfilePageProps {
   currentUser: AuthUser
@@ -88,6 +91,13 @@ export function ProfilePage({ currentUser }: ProfilePageProps) {
     )
   }
 
+  async function handleToggleFollow(userId: number, followedByMe: boolean) {
+    const status = followedByMe ? await unfollowUser(userId) : await followUser(userId)
+    queryClient.setQueryData<UserProfile>(['users', username], (old) =>
+      old ? { ...old, followedByMe: status.followedByMe, followerCount: status.followerCount } : old,
+    )
+  }
+
   if (isProfileLoading) {
     return <p className="py-8 text-center text-text-muted">読み込み中...</p>
   }
@@ -116,9 +126,17 @@ export function ProfilePage({ currentUser }: ProfilePageProps) {
           <div className="min-w-0 flex-1">
             <h1 className="text-xl font-bold text-text">{profile.displayName}</h1>
             <p className="text-sm text-text-muted">@{profile.username}</p>
+            <div className="mt-2 flex gap-4 text-sm">
+              <Link to={`/users/${profile.username}/following`} className="text-text hover:underline">
+                <strong>{profile.followingCount}</strong> <span className="text-text-muted">フォロー中</span>
+              </Link>
+              <Link to={`/users/${profile.username}/followers`} className="text-text hover:underline">
+                <strong>{profile.followerCount}</strong> <span className="text-text-muted">フォロワー</span>
+              </Link>
+            </div>
             {profile.bio && <p className="mt-2 whitespace-pre-wrap leading-relaxed text-text">{profile.bio}</p>}
           </div>
-          {profile.own && (
+          {profile.own ? (
             <button
               type="button"
               onClick={() => setIsEditingProfile(true)}
@@ -126,6 +144,8 @@ export function ProfilePage({ currentUser }: ProfilePageProps) {
             >
               プロフィールを編集
             </button>
+          ) : (
+            <FollowButton userId={profile.id} followedByMe={profile.followedByMe} onToggle={handleToggleFollow} />
           )}
         </section>
 

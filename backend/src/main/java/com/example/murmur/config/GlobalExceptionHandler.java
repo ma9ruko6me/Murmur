@@ -7,6 +7,7 @@ import com.example.murmur.comment.exception.CommentForbiddenException;
 import com.example.murmur.comment.exception.CommentNotFoundException;
 import com.example.murmur.post.exception.PostForbiddenException;
 import com.example.murmur.post.exception.PostNotFoundException;
+import com.example.murmur.user.exception.SelfFollowException;
 import com.example.murmur.user.exception.UserNotFoundException;
 import com.example.murmur.user.exception.UserProfileNotFoundException;
 import java.util.Map;
@@ -58,6 +59,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UserProfileNotFoundException.class)
     public ResponseEntity<Map<String, String>> handleUserProfileNotFound(UserProfileNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", ex.getMessage()));
+    }
+
+    @ExceptionHandler(SelfFollowException.class)
+    public ResponseEntity<Map<String, String>> handleSelfFollow(SelfFollowException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", ex.getMessage()));
     }
 
     @ExceptionHandler(CommentNotFoundException.class)
