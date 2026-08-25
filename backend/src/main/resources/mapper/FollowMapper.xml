@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.murmur.user.FollowMapper">
+
+    <resultMap id="followUserResultMap" type="com.example.murmur.user.FollowUser">
+        <id property="id" column="id" />
+        <result property="username" column="username" />
+        <result property="displayName" column="display_name" />
+        <result property="bio" column="bio" />
+        <result property="avatarUrl" column="avatar_url" />
+        <result property="followId" column="follow_id" />
+        <result property="createdAt" column="created_at" />
+        <result property="followedByMe" column="followed_by_me" />
+    </resultMap>
+
+    <insert id="insertIfAbsent">
+        INSERT INTO follows (follower_id, followee_id) VALUES (#{followerId}, #{followeeId})
+        ON CONFLICT (follower_id, followee_id) DO NOTHING
+    </insert>
+
+    <delete id="delete">
+        DELETE FROM follows WHERE follower_id = #{followerId} AND followee_id = #{followeeId}
+    </delete>
+
+    <select id="exists" resultType="boolean">
+        SELECT EXISTS (SELECT 1 FROM follows WHERE follower_id = #{followerId} AND followee_id = #{followeeId})
+    </select>
+
+    <select id="countFollowers" resultType="long">
+        SELECT count(*) FROM follows WHERE followee_id = #{userId}
+    </select>
+
+    <select id="countFollowing" resultType="long">
+        SELECT count(*) FROM follows WHERE follower_id = #{userId}
+    </select>
+
+    <select id="findFollowers" resultMap="followUserResultMap">
+        SELECT u.id, u.username, u.display_name, u.bio, u.avatar_url, f.id AS follow_id, f.created_at,
+               EXISTS (
+                   SELECT 1 FROM follows f2 WHERE f2.follower_id = #{currentUserId} AND f2.followee_id = u.id
+               ) AS followed_by_me
+        FROM follows f
+        JOIN users u ON u.id = f.follower_id
+        <where>
+            f.followee_id = #{userId}
+            <if test="cursorCreatedAt != null and cursorId != null">
+                AND (f.created_at, f.id) &lt; (#{cursorCreatedAt}, #{cursorId})
+            </if>
+        </where>
+        ORDER BY f.created_at DESC, f.id DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="findFollowing" resultMap="followUserResultMap">
+        SELECT u.id, u.username, u.display_name, u.bio, u.avatar_url, f.id AS follow_id, f.created_at,
+               EXISTS (
+                   SELECT 1 FROM follows f2 WHERE f2.follower_id = #{currentUserId} AND f2.followee_id = u.id
+               ) AS followed_by_me
+        FROM follows f
+        JOIN users u ON u.id = f.followee_id
+        <where>
+            f.follower_id = #{userId}
+            <if test="cursorCreatedAt != null and cursorId != null">
+                AND (f.created_at, f.id) &lt; (#{cursorCreatedAt}, #{cursorId})
+            </if>
+        </where>
+        ORDER BY f.created_at DESC, f.id DESC
+        LIMIT #{limit}
+    </select>
+
+</mapper>

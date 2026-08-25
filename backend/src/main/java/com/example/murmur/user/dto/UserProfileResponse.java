@@ -9,9 +9,13 @@ public record UserProfileResponse(
         String bio,
         String avatarUrl,
         long postCount,
-        boolean own) {
+        boolean own,
+        long followerCount,
+        long followingCount,
+        boolean followedByMe) {
 
-    public static UserProfileResponse from(User user, long postCount, boolean own) {
+    public static UserProfileResponse from(
+            User user, long postCount, boolean own, long followerCount, long followingCount, boolean followedByMe) {
         return new UserProfileResponse(
                 user.getId(),
                 user.getUsername(),
@@ -19,6 +23,9 @@ public record UserProfileResponse(
                 user.getBio(),
                 user.getAvatarUrl(),
                 postCount,
-                own);
+                own,
+                followerCount,
+                followingCount,
+                followedByMe);
     }
 }
