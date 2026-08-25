@@ -222,6 +222,33 @@ class PostControllerTest {
                 .andExpect(jsonPath("$.items[0].content").value("stranger post"));
     }
 
+    @Test
+    void searchFindsPostsByContentKeywordCaseInsensitivelyAndIgnoresBlankQuery() throws Exception {
+        String token = signupAndLogin("harold", "Harold", "harold@example.com");
+
+        mockMvc.perform(post("/api/posts")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new ContentPayload("I love Murmur"))))
+                .andExpect(status().isCreated());
+        mockMvc.perform(post("/api/posts")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new ContentPayload("unrelated content"))))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(get("/api/posts/search")
+                        .param("q", "murmur")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items.length()").value(1))
+                .andExpect(jsonPath("$.items[0].content").value("I love Murmur"));
+
+        mockMvc.perform(get("/api/posts/search").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items.length()").value(0));
+    }
+
     private String signupAndLogin(String username, String displayName, String email) throws Exception {
         mockMvc.perform(post("/api/auth/signup")
                         .contentType(MediaType.APPLICATION_JSON)

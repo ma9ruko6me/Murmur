@@ -5,6 +5,7 @@ import { Timeline } from './components/Timeline'
 import { PostDetailPage } from './components/PostDetailPage'
 import { ProfilePage } from './components/ProfilePage'
 import { FollowListPage } from './components/FollowListPage'
+import { SearchPage } from './components/SearchPage'
 import { RequireAuth } from './components/RequireAuth'
 import { useAuth } from './hooks/useAuth'
 
@@ -85,6 +86,14 @@ function App() {
         element={
           <RequireAuth authenticated={authenticated}>
             {user && <FollowListPage currentUser={user} listType="following" />}
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/search"
+        element={
+          <RequireAuth authenticated={authenticated}>
+            {user && <SearchPage currentUser={user} />}
           </RequireAuth>
         }
       />

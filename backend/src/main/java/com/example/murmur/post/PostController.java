@@ -61,6 +61,27 @@ public class PostController {
         return new PostPageResponse(page.stream().map(PostResponse::from).toList(), nextCursor);
     }
 
+    @GetMapping("/search")
+    public PostPageResponse search(
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) String cursor,
+            @RequestParam(required = false) Integer limit,
+            Authentication authentication) {
+        Long currentUserId = (Long) authentication.getPrincipal();
+        int pageSize = clamp(limit);
+        Cursor decoded = cursor != null ? decodeCursor(cursor) : null;
+        List<Post> rows = postService.searchPage(
+                q,
+                decoded != null ? decoded.createdAt() : null,
+                decoded != null ? decoded.id() : null,
+                pageSize + 1,
+                currentUserId);
+        boolean hasMore = rows.size() > pageSize;
+        List<Post> page = hasMore ? rows.subList(0, pageSize) : rows;
+        String nextCursor = hasMore ? encodeCursor(page.get(page.size() - 1)) : null;
+        return new PostPageResponse(page.stream().map(PostResponse::from).toList(), nextCursor);
+    }
+
     @GetMapping("/new-count")
     public Map<String, Long> newCount(
             @RequestParam Long after,

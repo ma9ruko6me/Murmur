@@ -22,6 +22,13 @@ public interface PostMapper {
     long countNewerThan(
             @Param("afterId") Long afterId, @Param("currentUserId") Long currentUserId, @Param("scope") String scope);
 
+    List<Post> searchPage(
+            @Param("q") String q,
+            @Param("cursorCreatedAt") LocalDateTime cursorCreatedAt,
+            @Param("cursorId") Long cursorId,
+            @Param("limit") int limit,
+            @Param("currentUserId") Long currentUserId);
+
     void insert(Post post);
 
     void update(@Param("id") Long id, @Param("content") String content);

@@ -32,6 +32,14 @@ public class PostService {
         return postMapper.countNewerThan(afterId, currentUserId, scope);
     }
 
+    public List<Post> searchPage(
+            String q, LocalDateTime cursorCreatedAt, Long cursorId, int limit, Long currentUserId) {
+        if (q == null || q.isBlank()) {
+            return List.of();
+        }
+        return postMapper.searchPage(q.trim(), cursorCreatedAt, cursorId, limit, currentUserId);
+    }
+
     public Post create(Long userId, String content) {
         Post post = new Post();
         post.setUserId(userId);

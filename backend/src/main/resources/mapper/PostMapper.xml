@@ -53,6 +53,19 @@
         LIMIT #{limit}
     </select>
 
+    <select id="searchPage" resultMap="postResultMap">
+        <include refid="baseSelect" />
+        <where>
+            p.content ILIKE CONCAT('%', #{q}, '%')
+            <if test="cursorCreatedAt != null and cursorId != null">
+                AND (p.created_at, p.id) &lt; (#{cursorCreatedAt}, #{cursorId})
+            </if>
+        </where>
+        <include refid="groupBy" />
+        ORDER BY p.created_at DESC, p.id DESC
+        LIMIT #{limit}
+    </select>
+
     <select id="countNewerThan" resultType="long">
         SELECT count(*) FROM posts p
         <where>
