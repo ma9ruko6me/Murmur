@@ -3,8 +3,11 @@ import type { Post, PostPage } from '../types/post'
 
 export type PostsQueryData = InfiniteData<PostPage, string | null>
 
-export function postsQueryKey(userId?: number): readonly unknown[] {
-  return userId != null ? ['posts', 'user', userId] : ['posts']
+export function postsQueryKey(userId?: number, scope?: 'all' | 'following'): readonly unknown[] {
+  if (userId != null) {
+    return ['posts', 'user', userId]
+  }
+  return scope != null ? ['posts', 'scope', scope] : ['posts']
 }
 
 export function patchPostInInfiniteCache(
@@ -47,8 +50,12 @@ export function patchPostsByAuthorInInfiniteCache(
   })
 }
 
-export function prependPostToInfiniteCache(queryClient: QueryClient, created: Post): void {
-  queryClient.setQueryData<PostsQueryData>(['posts'], (old) => {
+export function prependPostToInfiniteCache(
+  queryClient: QueryClient,
+  created: Post,
+  queryKey: readonly unknown[] = ['posts'],
+): void {
+  queryClient.setQueryData<PostsQueryData>(queryKey, (old) => {
     if (!old) {
       return old
     }

@@ -78,8 +78,17 @@ class PostControllerTest {
                         .content(objectMapper.writeValueAsString(new ContentPayload("second post"))))
                 .andExpect(status().isCreated());
 
+        // Default scope (following) excludes posts from users bob doesn't follow.
         mockMvc.perform(get("/api/posts/new-count")
                         .param("after", String.valueOf(postId))
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.count").value(0));
+
+        // scope=all includes every user's posts.
+        mockMvc.perform(get("/api/posts/new-count")
+                        .param("after", String.valueOf(postId))
+                        .param("scope", "all")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.count").value(1));
@@ -164,6 +173,53 @@ class PostControllerTest {
                 .asLong();
 
         org.assertj.core.api.Assertions.assertThat(secondPageNewestId).isLessThan(firstPageOldestId);
+    }
+
+    @Test
+    void followingScopeShowsOnlyFollowedAndOwnPostsWhileAllScopeShowsEveryone() throws Exception {
+        String token = signupAndLogin("ellen", "Ellen", "ellen@example.com");
+        String followedToken = signupAndLogin("floyd", "Floyd", "floyd@example.com");
+        String strangerToken = signupAndLogin("gwen", "Gwen", "gwen@example.com");
+
+        long followedId = objectMapper
+                .readTree(mockMvc.perform(get("/api/users/me").header("Authorization", "Bearer " + followedToken))
+                        .andReturn()
+                        .getResponse()
+                        .getContentAsString())
+                .get("id")
+                .asLong();
+
+        mockMvc.perform(post("/api/users/" + followedId + "/follow").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(post("/api/posts")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new ContentPayload("own post"))))
+                .andExpect(status().isCreated());
+        mockMvc.perform(post("/api/posts")
+                        .header("Authorization", "Bearer " + followedToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new ContentPayload("followed post"))))
+                .andExpect(status().isCreated());
+        mockMvc.perform(post("/api/posts")
+                        .header("Authorization", "Bearer " + strangerToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new ContentPayload("stranger post"))))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(get("/api/posts").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[*].content").value(org.hamcrest.Matchers.containsInAnyOrder(
+                        "own post", "followed post")));
+
+        // scope=all also surfaces the stranger's post, which scope=following hides.
+        mockMvc.perform(get("/api/posts")
+                        .param("scope", "all")
+                        .param("limit", "1")
+                        .header("Authorization", "Bearer " + strangerToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[0].content").value("stranger post"));
     }
 
     private String signupAndLogin(String username, String displayName, String email) throws Exception {

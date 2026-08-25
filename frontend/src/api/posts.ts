@@ -6,15 +6,18 @@ export async function fetchPosts(params: {
   cursor?: string | null
   limit?: number
   userId?: number
+  scope?: 'all' | 'following'
 }): Promise<PostPage> {
   const response = await apiClient.get<PostPage>('/posts', {
-    params: { cursor: params.cursor ?? undefined, limit: params.limit, userId: params.userId },
+    params: { cursor: params.cursor ?? undefined, limit: params.limit, userId: params.userId, scope: params.scope },
   })
   return response.data
 }
 
-export async function fetchNewPostCount(afterId: number): Promise<number> {
-  const response = await apiClient.get<{ count: number }>('/posts/new-count', { params: { after: afterId } })
+export async function fetchNewPostCount(afterId: number, scope?: 'all' | 'following'): Promise<number> {
+  const response = await apiClient.get<{ count: number }>('/posts/new-count', {
+    params: { after: afterId, scope },
+  })
   return response.data.count
 }
 

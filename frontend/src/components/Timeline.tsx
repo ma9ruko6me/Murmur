@@ -9,6 +9,7 @@ import { likePost, unlikePost } from '../api/likes'
 import { logout } from '../api/auth'
 import {
   patchPostInInfiniteCache,
+  postsQueryKey,
   prependPostToInfiniteCache,
   removePostFromInfiniteCache,
 } from '../lib/postsCache'
@@ -31,7 +32,10 @@ export function Timeline({ currentUser, onLogout }: TimelineProps) {
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null)
   const [loggingOut, setLoggingOut] = useState(false)
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useInfinitePosts()
+  const [scope, setScope] = useState<'all' | 'following'>('following')
+
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useInfinitePosts(undefined, scope)
+  const queryKey = useMemo(() => postsQueryKey(undefined, scope), [scope])
 
   const posts = useMemo(() => data?.pages.flatMap((page) => page.items) ?? [], [data])
   const latestKnownId = posts[0]?.id ?? null
@@ -39,6 +43,7 @@ export function Timeline({ currentUser, onLogout }: TimelineProps) {
   const { data: newPostCount, refetch: refetchNewPostCount } = useNewPostsAvailable(
     latestKnownId,
     !isLoading,
+    scope,
   )
 
   const handleLoadMore = useCallback(() => {
@@ -64,7 +69,7 @@ export function Timeline({ currentUser, onLogout }: TimelineProps) {
 
   async function handleCreateSubmit(content: string) {
     const created = await createPost(content)
-    prependPostToInfiniteCache(queryClient, created)
+    prependPostToInfiniteCache(queryClient, created, queryKey)
   }
 
   async function handleEditSubmit(content: string) {
@@ -72,7 +77,7 @@ export function Timeline({ currentUser, onLogout }: TimelineProps) {
       return
     }
     const updated = await updatePost(editingPost.id, content)
-    patchPostInInfiniteCache(queryClient, updated.id, () => updated)
+    patchPostInInfiniteCache(queryClient, updated.id, () => updated, queryKey)
   }
 
   async function handleConfirmDelete() {
@@ -82,16 +87,17 @@ export function Timeline({ currentUser, onLogout }: TimelineProps) {
     const id = deleteTargetId
     setDeleteTargetId(null)
     await deletePost(id)
-    removePostFromInfiniteCache(queryClient, id)
+    removePostFromInfiniteCache(queryClient, id, queryKey)
   }
 
   async function handleToggleLike(post: Post) {
     const status = post.likedByMe ? await unlikePost(post.id) : await likePost(post.id)
-    patchPostInInfiniteCache(queryClient, post.id, (item) => ({
-      ...item,
-      likeCount: status.likeCount,
-      likedByMe: status.likedByMe,
-    }))
+    patchPostInInfiniteCache(
+      queryClient,
+      post.id,
+      (item) => ({ ...item, likeCount: status.likeCount, likedByMe: status.likedByMe }),
+      queryKey,
+    )
   }
 
   async function handleLogout() {
@@ -141,6 +147,31 @@ export function Timeline({ currentUser, onLogout }: TimelineProps) {
               投稿する
             </button>
           </div>
+        </div>
+
+        <div className="mb-4 flex gap-2">
+          <button
+            type="button"
+            onClick={() => setScope('following')}
+            className={
+              scope === 'following'
+                ? 'rounded-full bg-accent px-4 py-1.5 text-sm font-semibold text-white'
+                : 'rounded-full border border-border bg-surface px-4 py-1.5 text-sm font-semibold text-text-muted hover:text-text'
+            }
+          >
+            フォロー中
+          </button>
+          <button
+            type="button"
+            onClick={() => setScope('all')}
+            className={
+              scope === 'all'
+                ? 'rounded-full bg-accent px-4 py-1.5 text-sm font-semibold text-white'
+                : 'rounded-full border border-border bg-surface px-4 py-1.5 text-sm font-semibold text-text-muted hover:text-text'
+            }
+          >
+            すべて
+          </button>
         </div>
 
         {(newPostCount ?? 0) > 0 && (
